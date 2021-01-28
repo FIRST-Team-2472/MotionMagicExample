@@ -34,7 +34,7 @@ public class Robot extends IterativeRobot {
   private static final String kCustomAuto = "My Auto";
   private String m_autoSelected;
 
-  TalonSRX talon16 = new TalonSRX(2);
+  TalonSRX talon16 = new TalonSRX(16);
   PigeonIMU pigeon = new PigeonIMU(2);
   Joystick joy = new Joystick(0);
   Faults _faults = new Faults(); /* temp to fill with latest faults */
