@@ -56,7 +56,7 @@ public class Robot extends IterativeRobot {
 
   int testmode = 0;     // Initial test mode will be 0
 
-
+//hi
 		
 	
 
