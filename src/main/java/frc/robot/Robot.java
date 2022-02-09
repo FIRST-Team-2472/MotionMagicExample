@@ -9,13 +9,15 @@ package frc.robot;
 
 
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.wpilibj.Joystick;
 
 
 import com.ctre.phoenix.motorcontrol.*;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
-import edu.wpi.first.wpilibj.Preferences;
 
 public class Robot extends TimedRobot {
 
@@ -30,9 +32,10 @@ public class Robot extends TimedRobot {
   int waitcount = -1;
   double baseY;       // null (initial) position of joystick
   double realY;       // Adjusted current position of joystick
-
-	Preferences prefs;
-		
+  
+  
+  NetworkTableEntry tKP, tKF, tKI, tKD;
+  ShuffleboardTab main;	
 	double KP;
   double KI;
   double KD;
@@ -44,6 +47,14 @@ public class Robot extends TimedRobot {
 		
   @Override
   public void robotInit() {
+
+    main = Shuffleboard.getTab("vaules");
+
+    tKF = main.add("KF", 0.0).getEntry();
+    tKP = main.add("KP", 0.0).getEntry();
+    tKI = main.add("KI", 0.0).getEntry();
+    tKD = main.add("KD", 0.0).getEntry();
+
       // Set talon parameters to default values
       talon16.configFactoryDefault();
 
@@ -260,15 +271,10 @@ public class Robot extends TimedRobot {
 
   public void GetPrefs()
   {
-		KP = SmartDashboard.getNumber("KP", 0.0);
-		KI = SmartDashboard.getNumber("KI", 0.0);
-    KD = SmartDashboard.getNumber("KD", 0.0);
-    KF = SmartDashboard.getNumber("KF", 0.0);
-
-    SmartDashboard.putNumber("KP", KP);
-    SmartDashboard.putNumber("KI", KI);
-    SmartDashboard.putNumber("KD", KD);
-    SmartDashboard.putNumber("KF", KF);
+		KP = tKP.getDouble(0.0);
+		KI = tKI.getDouble(0.0);
+    KD = tKD.getDouble(0.0);
+    KF = tKF.getDouble(0.0);
 
     talon16.config_kF(0, KF, 30);
     talon16.config_kP(0, KP, 30);
