@@ -7,35 +7,19 @@
 
 package frc.robot;
 
-//import com.ctre.phoenix.motorcontrol.*;
 
-import edu.wpi.first.wpilibj.IterativeRobot;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import com.ctre.phoenix.sensors.PigeonIMU;
-//import com.ctre.phoenix.motorcontrol.can.*;
 import edu.wpi.first.wpilibj.Joystick;
 
-//import static org.junit.Assume.assumeNoException;
 
 import com.ctre.phoenix.motorcontrol.*;
-import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import edu.wpi.first.wpilibj.Preferences;
 
-/**
- * The VM is configured to automatically run this class, and to call the
- * functions corresponding to each mode, as described in the IterativeRobot
- * documentation. If you change the name of this class or the package after
- * creating this project, you must also update the build.gradle file in the
- * project.
- */
-public class Robot extends IterativeRobot {
-  private static final String kDefaultAuto = "Default";
-  private static final String kCustomAuto = "My Auto";
-  private String m_autoSelected;
+public class Robot extends TimedRobot {
 
-  TalonSRX talon16 = new TalonSRX(16);
-  PigeonIMU pigeon = new PigeonIMU(2);
+  TalonFX talon16 = new TalonFX(50);
   Joystick joy = new Joystick(0);
   Faults _faults = new Faults(); /* temp to fill with latest faults */
   long  lastms;
@@ -56,14 +40,8 @@ public class Robot extends IterativeRobot {
 
   int testmode = 0;     // Initial test mode will be 0
 
-//hi
-		
-	
 
-  /**
-   * This function is run when the robot is first started up and should be
-   * used for any initialization code.
-   */
+		
   @Override
   public void robotInit() {
       // Set talon parameters to default values
@@ -72,10 +50,7 @@ public class Robot extends IterativeRobot {
       GetPrefs();  // Get and set PID parameters for talon16
 
     talon16.setSensorPhase(true);  // correct encoder to motor direction
-     
-    // Tell the talon that he has a quad encoder
-    talon16.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, 0, 30);
-   
+        
     // Set minimum output (closed loop)  to 0 for now
     talon16.configNominalOutputForward(0, 30);
     talon16.configNominalOutputReverse(0, 30);
@@ -85,10 +60,10 @@ public class Robot extends IterativeRobot {
     talon16.configPeakOutputReverse(-1, 30);
 
     // Motion magic cruise (max speed) is 100 counts per 100 ms
-		talon16.configMotionCruiseVelocity(500, 30);
+		talon16.configMotionCruiseVelocity(10000, 30);
 
     // Motion magic acceleration is 50 counts
-		talon16.configMotionAcceleration(100, 30);
+		talon16.configMotionAcceleration(500, 30);
 
 		// Zero the sensor once on robot boot up 
 		talon16.setSelectedSensorPosition(0, 0, 30);
@@ -100,57 +75,20 @@ public class Robot extends IterativeRobot {
 
   }
 
-  /**
-   * This function is called every robot packet, no matter the mode. Use
-   * this for items like diagnostics that you want ran during disabled,
-   * autonomous, teleoperated and test.
-   *
-   * <p>This runs after the mode specific periodic functions, but before
-   * LiveWindow and SmartDashboard integrated updating.
-   */
   @Override
   public void robotPeriodic() {
   }
 
-  /**
-   * This autonomous (along with the chooser code above) shows how to select
-   * between different autonomous modes using the dashboard. The sendable
-   * chooser code works with the Java SmartDashboard. If you prefer the
-   * LabVIEW Dashboard, remove all of the chooser code and uncomment the
-   * getString line to get the auto name from the text box below the Gyro
-   *
-   * <p>You can add additional auto modes by adding additional comparisons to
-   * the switch structure below with additional strings. If using the
-   * SendableChooser make sure to add them to the chooser code above as well.
-   */
   @Override
-  public void autonomousInit() 
-  
-  {
-  
-    talon16.config_kF(0, 0, 30);
-    talon16.config_kP(0, 0, 30);
-    talon16.config_kI(0, 0, 30);
-    talon16.config_kD(0, 0, 30);
-    SmartDashboard.putNumber("KP", 0);
-    SmartDashboard.putNumber("KI", 0);
-    SmartDashboard.putNumber("KD", 0);
-    SmartDashboard.putNumber("KF", 0);
-
+  public void autonomousInit() {
     AState = 1;     // Set state to 1
     System.out.println("Autonomous Init");
+    GetPrefs();
    
   }
 
-  /**
-   * This function is called periodically during autonomous.
-   */
   @Override
   public void autonomousPeriodic() {
-    long time = System.currentTimeMillis();
-    double rawcounts;
-    double countsper100;
-    double duration;
     double suggestKF = 0;
     double velocity;
     double error;
@@ -239,13 +177,9 @@ public class Robot extends IterativeRobot {
   public void teleopInit() 
     {
       talon16.setSelectedSensorPosition(0, 0, 30);
-      GetPrefs();   // Get and set PID parameters
-      pigeon.setFusedHeading(0.0, 30);
+      GetPrefs();  
     }
 
-  /**
-   * This function is called periodically during operator control.
-   */
   @Override
   public void teleopPeriodic() {
   
@@ -291,9 +225,6 @@ public class Robot extends IterativeRobot {
     SmartDashboard.putNumber("Velocity Target", targetVelocity_UnitsPer100ms);
     SmartDashboard.putNumber("Sensor Pos:", talon16.getSelectedSensorPosition());
     SmartDashboard.putNumber("MM Target", targetPos);
-    SmartDashboard.putBoolean("Forward Limit", talon16.getSensorCollection().isFwdLimitSwitchClosed());
-    SmartDashboard.putBoolean("Backward Limit", talon16.getSensorCollection().isRevLimitSwitchClosed());
-    DoPigeon();
   }
 
 
@@ -309,8 +240,8 @@ public class Robot extends IterativeRobot {
    */
   @Override
   public void testPeriodic() {
-    prefs = Preferences.getInstance();
-    testmode = prefs.getInt("TestMode", 1);
+    //prefs = Preferences.getInstance();
+    //testmode = prefs.getInt("TestMode", 1);
     SmartDashboard.putNumber("TestMode", testmode);
     switch(testmode)
     {
@@ -329,18 +260,17 @@ public class Robot extends IterativeRobot {
 
   public void GetPrefs()
   {
-    prefs = Preferences.getInstance();
-		KP = prefs.getDouble("KP", 1.0);
-		KI = prefs.getDouble("KI", 0.1);
-    KD = prefs.getDouble("KD", 2.0);
-    KF = prefs.getDouble("KF", 3.7);
-    
+		KP = SmartDashboard.getNumber("KP", 0.0);
+		KI = SmartDashboard.getNumber("KI", 0.0);
+    KD = SmartDashboard.getNumber("KD", 0.0);
+    KF = SmartDashboard.getNumber("KF", 0.0);
+
     SmartDashboard.putNumber("KP", KP);
     SmartDashboard.putNumber("KI", KI);
     SmartDashboard.putNumber("KD", KD);
     SmartDashboard.putNumber("KF", KF);
 
-    talon16.config_kF(0, 3.70, 30);
+    talon16.config_kF(0, KF, 30);
     talon16.config_kP(0, KP, 30);
     talon16.config_kI(0, KI, 30);
     talon16.config_kD(0, KD, 30);
@@ -392,34 +322,5 @@ public class Robot extends IterativeRobot {
     SmartDashboard.putNumber("MM Target", targetPos);
   }
   
-  public void DoPigeon(){
-    PigeonIMU.GeneralStatus genStatus = new PigeonIMU.GeneralStatus();
-
-		PigeonIMU.FusionStatus fusionStatus = new PigeonIMU.FusionStatus();
-
-		double [] xyz_dps = new double [3];
-
-		/* grab some input data from Pigeon and gamepad*/
-
-		pigeon.getGeneralStatus(genStatus);
-
-		pigeon.getRawGyro(xyz_dps);
-
-		pigeon.getFusedHeading(fusionStatus);
-
-    double currentAngle = fusionStatus.heading;
-
-		boolean angleIsGood = (pigeon.getState() == PigeonIMU.PigeonState.Ready) ? true : false;
-
-    double currentAngularRate = xyz_dps[2];
-    
-    SmartDashboard.putBoolean("AngleGood", angleIsGood);
-    SmartDashboard.putNumber("Angle", currentAngle);
-    SmartDashboard.putNumber("Rate", currentAngularRate);
-    
-
-
-
-  }
 
 }
