@@ -74,7 +74,7 @@ public class Robot extends TimedRobot {
 		talon16.configMotionCruiseVelocity(10000, 30);
 
     // Motion magic acceleration is 50 counts
-		talon16.configMotionAcceleration(500, 30);
+		talon16.configMotionAcceleration(4000, 30);
 
 		// Zero the sensor once on robot boot up 
 		talon16.setSelectedSensorPosition(0, 0, 30);
@@ -219,7 +219,7 @@ public class Robot extends TimedRobot {
           break;
 
       case 3:
-          targetPos = joy.getY() * 40000;  // Max range = +/- 1024 counts per rev times 4 revs
+          targetPos = joy.getY() * 120000;  // Max range = +/- 1024 counts per rev times 4 revs
           talon16.set(ControlMode.MotionMagic, targetPos);
           break;
       
